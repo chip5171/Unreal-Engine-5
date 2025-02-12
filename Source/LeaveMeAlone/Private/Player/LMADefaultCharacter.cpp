@@ -21,7 +21,7 @@ ALMADefaultCharacter::ALMADefaultCharacter()
 	SpringArmComponent->bDoCollisionTest = false;
 	SpringArmComponent->bEnableCameraLag = true;
 
-	CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComponenr");
+	CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
 	CameraComponent->SetupAttachment(SpringArmComponent);
 	CameraComponent->SetFieldOfView(FOV);
 	CameraComponent->bUsePawnControlRotation = false;
@@ -65,6 +65,7 @@ void ALMADefaultCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ALMADefaultCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ALMADefaultCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("Zoom", this, &ALMADefaultCharacter::ZoomCamera);
 }
 
 void ALMADefaultCharacter::MoveForward(float Value)
@@ -75,4 +76,15 @@ void ALMADefaultCharacter::MoveForward(float Value)
 void ALMADefaultCharacter::MoveRight(float Value)
 {
 	AddMovementInput(GetActorRightVector(), Value);
+}
+
+void ALMADefaultCharacter::ZoomCamera(float Value)
+{
+	float ThisDeltaTime = GetWorld()->GetDeltaSeconds();
+	float CurrentZoomPozition = SpringArmComponent->TargetArmLength;
+	float NewZoomPozition = CurrentZoomPozition * (1 + Value * ZoomSpeed);
+	float TargetZoomPozition = FMath::Clamp(NewZoomPozition, MinArmLength, ArmLength);
+	float InterpSpeed = 5.0f;
+
+	SpringArmComponent->TargetArmLength = FMath::FInterpTo(CurrentZoomPozition, TargetZoomPozition, ThisDeltaTime, InterpSpeed);
 }
